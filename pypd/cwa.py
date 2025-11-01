@@ -1,5 +1,6 @@
 import requests
 
+
 URLS = ['https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0003-001',
         'https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0001-001']
 
@@ -72,3 +73,22 @@ def _cwa(url, site, key):
     h = float(raw['WeatherElement']['RelativeHumidity']) / 100
     
     return {'S': s, 'O': o, 'C': c, 'R': _r, 'T': t, 'H': h}
+
+def tostr(info_dict, sep=', '):
+    buf = []
+    if 'S' in info_dict:
+        buf.append(f"測站: {info_dict['S']}")
+    if 'C' in info_dict:
+        buf.append(f"座標: {info_dict['C']}")
+    if 'O' in info_dict:
+        buf.append(f"時間: {info_dict['O']}")
+    if 'T' in info_dict:
+        buf.append(f"溫度: {info_dict['T']}度")
+    if 'H' in info_dict:
+        buf.append(f"濕度: {info_dict['H']:.0%}")
+    if 'R' in info_dict:
+        buf.append(f"雨量: {info_dict['R']}mm")
+    return sep.join(buf)
+
+if __name__ == '__main__':
+    print(cwa2('苗栗', 'CWA-26C9E5EA-D812-4422-B5C5-BE9E02A4597C'))
