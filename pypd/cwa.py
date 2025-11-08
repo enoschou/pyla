@@ -91,4 +91,5 @@ def tostr(info_dict, sep=', '):
     return sep.join(buf)
 
 if __name__ == '__main__':
-    print(cwa2('苗栗', 'CWA-26C9E5EA-D812-4422-B5C5-BE9E02A4597C'))
+    print(cwa2('苗栗', 'YOUR_KEY'))
+
