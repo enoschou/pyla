@@ -16,21 +16,35 @@ def _load_sitemaps(key):
     for url in URLS:
         r = requests.get(url, params=params)
         for s in r.json()['records']['Station']:
-            sitemaps[s['StationName']] = url
+            #sitemaps[s['StationName']] = url
+            c = (float(s['GeoInfo']['Coordinates'][1]['StationLatitude']),
+                 float(s['GeoInfo']['Coordinates'][1]['StationLongitude']))
+            sitemaps[s['StationName']] = {'url': url, 'coor': c}
     print('sitemaps built')
 
     return sitemaps
 
-def cwa2(site, key):
+def cwa2(site: str | tuple, key: str) -> dict:
+    '''weather info grabber grom CWA
+    site   - site name or coordinates
+    key    - CWA key
+    return - weather info in dict
+    '''
     global _sitemaps
 
     if not _sitemaps:
         _sitemaps = _load_sitemaps(key)
 
-    url = _sitemaps.get(site)
+    if type(site) == tuple:
+        site = _nearest(site)    
+
+    url = _sitemaps.get(site, {}).get('url')
     if url:
         return _cwa(url, site, key)
     return {}
+
+def _nearest(site):
+    return min(((site[0] - v['coor'][0]) ** 2 + (site[1] - v['coor'][1]) ** 2, s) for s, v in _sitemaps.items())[1]
 
 def cwa(site, key):
     # info = _cwa(URL[0], site, key)
@@ -92,4 +106,5 @@ def tostr(info_dict, sep=', '):
 
 if __name__ == '__main__':
     print(cwa2('苗栗', 'YOUR_KEY'))
+
 
