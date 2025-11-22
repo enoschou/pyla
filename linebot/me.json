@@ -1,0 +1,106 @@
+{
+  "type": "bubble",
+  "header": {
+    "type": "box",
+    "layout": "baseline",
+    "contents": [
+      {
+        "type": "text",
+        "text": "粉絲一覽",
+        "size": "4xl",
+        "align": "center",
+        "color": "#FF0000"
+      }
+    ]
+  },
+  "hero": {
+    "type": "image",
+    "url": "https://cdn.britannica.com/94/256194-050-DD861124/Shohei-Ohtani-Los-Angeles-Dodgers.jpg",
+    "size": "full",
+    "aspectRatio": "4:3",
+    "action": {
+      "type": "uri",
+      "uri": "https://line.me/"
+    }
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "box",
+        "layout": "vertical",
+        "margin": "lg",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "baseline",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": "User ID",
+                "color": "#0000FF",
+                "size": "sm",
+                "flex": 0
+              },
+              {
+                "type": "text",
+                "text": "U12345678901234567890123456789012",
+                "wrap": false,
+                "color": "#666666",
+                "size": "sm",
+                "flex": 5
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": "Display",
+                "color": "#0000FF",
+                "size": "sm",
+                "flex": 0
+              },
+              {
+                "type": "text",
+                "text": "Enos",
+                "wrap": true,
+                "color": "#666666",
+                "size": "sm",
+                "flex": 5
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": "Status",
+                "color": "#0000FF",
+                "size": "sm",
+                "flex": 0
+              },
+              {
+                "type": "text",
+                "text": "N/A",
+                "wrap": false,
+                "color": "#666666",
+                "size": "sm",
+                "flex": 5
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
