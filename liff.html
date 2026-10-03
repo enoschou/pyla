@@ -1,0 +1,32 @@
+<div style="display: flex; align-items: center; gap: 10px;">
+	<img height="100" width="100" id="picture" style="visibility: hidden;" alt="picture">
+	<h1>Hello <span id="name">Somebody</span></h1>
+</div>
+
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<script>
+	liff.init({ liffId: '2011572966-UNVtYEBk' })
+		.then(() => {
+			console.log('LIFF OK');
+			
+			if (!liff.isLoggedIn()) {
+				liff.login();
+				return;
+			}
+			
+			liff.getProfile()
+				.then((profile) => {
+					const { displayName, userId, pictureUrl } = profile;
+					console.log({ displayName, userId, pictureUrl });
+					document.getElementById('name').textContent = displayName;
+					if (pictureUrl) {
+						const imgElement = document.getElementById('picture');
+						imgElement.src = pictureUrl;
+						imgElement.style.visibility = 'visible';
+					}
+				})
+				.catch((error) => { console.error('liff.getProfile() failed:', error); });
+		})
+		.catch((error) => { console.error('liff.init() failed:', error); });
+</script>
