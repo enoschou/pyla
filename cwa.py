@@ -47,12 +47,41 @@ def get_weather(name: str, key: str) -> dict:
 
     return {}
 
+def tostr(weather_info: dict[str], sep: str = ', ') -> str:
+    '''convert weather info to description
+    weather_info - weather info in dict
+    sep          - seprator of description
+    return       - description
+                 - 無觀測 for no weather info
+    '''
+    show = []
+    if 'S' in weather_info:
+        show.append(f'測站: {weather_info['S']}')
+    if 'I' in weather_info:
+        show.append(f'編號: {weather_info['I']}')
+    if 'O' in weather_info:
+        show.append(f'時間: {weather_info['O']}')
+    if 'T' in weather_info:
+        show.append(f'溫度: {weather_info['T']:.1f}度')
+    if 'H' in weather_info:
+        show.append(f'濕度: {weather_info['H']:.0%}')
+    if 'R' in weather_info:
+        show.append(f'雨量: {weather_info['R']:.1f}mm')
+
+    return sep.join(show) or '無觀測'
+
+
 if __name__ == '__main__':
     import argparse
     
     parser = argparse.ArgumentParser()
     parser.add_argument('name', help='station name of CWA')
     parser.add_argument('key', help='API key of CWA')
+    parser.add_argument('--raw', action='store_true')
     args = parser.parse_args()
     
-    print(get_weather(args.name, args.key))
+    info = get_weather(args.name, args.key)
+    if args.raw:
+        print(info)
+    else:
+        print(tostr(info))
