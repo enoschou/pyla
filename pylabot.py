@@ -22,7 +22,9 @@ from linebot.v3.webhooks import (
     MessageEvent,
     TextMessageContent,
     ImageMessageContent,
-    AudioMessageContent
+    AudioMessageContent,
+    FileMessageContent,
+    LocationMessageContent
 )
 
 from google.cloud import storage
@@ -63,6 +65,41 @@ def callback():
         abort(400)
 
     return 'OK'
+
+
+@handler.add(MessageEvent, message=LocationMessageContent)
+def handle_message(event):
+    #print(event)
+    reply_text = f'{event.message.latitude}\n{event.message.longitude}\n{event.message.address}'
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=reply_text)]
+            )
+        )
+
+
+@handler.add(MessageEvent, message=FileMessageContent)
+def handle_message(event):
+    print(event)
+    with ApiClient(configuration) as api_client:
+        line_bot_api_blob = MessagingApiBlob(api_client)
+        content = line_bot_api_blob.get_message_content(event.message.id)
+        
+        with open('test.pdf', 'wb') as f:
+            f.write(content)
+        
+        line_bot_api = MessagingApi(api_client)
+        line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=f'got file {event.message.file_name}')]
+            )
+        )
+
+
 
 @handler.add(MessageEvent, message=AudioMessageContent)
 def handle_message(event):
