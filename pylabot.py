@@ -1,3 +1,4 @@
+from io import BytesIO
 import json
 from time import strftime
 
@@ -20,10 +21,13 @@ from linebot.v3.messaging import (
 from linebot.v3.webhooks import (
     MessageEvent,
     TextMessageContent,
-    ImageMessageContent
+    ImageMessageContent,
+    AudioMessageContent
 )
 
 from google.cloud import storage
+
+from PIL import Image
 
 import cwa
 
@@ -60,25 +64,47 @@ def callback():
 
     return 'OK'
 
+@handler.add(MessageEvent, message=AudioMessageContent)
+def handle_message(event):
+    print(event)
+    with ApiClient(configuration) as api_client:
+        line_bot_api_blob = MessagingApiBlob(api_client)
+        content = line_bot_api_blob.get_message_content(event.message.id)
+        
+        with open('test.m4a', 'wb') as f:
+            f.write(content)
+        
+        line_bot_api = MessagingApi(api_client)
+        line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=f'got audio')]
+            )
+        )
+
+
 @handler.add(MessageEvent, message=ImageMessageContent)
 def handle_message(event):
     print(event)
     with ApiClient(configuration) as api_client:
         line_bot_api_blob = MessagingApiBlob(api_client)
         content = line_bot_api_blob.get_message_content(event.message.id)
-        blob_name = f'{event.source.user_id}_{event.message.id}_{strftime('%Y%m%d%H%M%S')}.jpg'
-        bucket_name = env.get('GOOGLE_CLOUD_STORAGE_BUCKET', '')
-        storage_client.bucket(bucket_name).blob(blob_name).upload_from_string(content,
-                                                                              content_type='image/jpeg')
+        #blob_name = f'{event.source.user_id}_{event.message.id}_{strftime('%Y%m%d%H%M%S')}.jpg'
+        #bucket_name = env.get('GOOGLE_CLOUD_STORAGE_BUCKET', '')
+        #storage_client.bucket(bucket_name).blob(blob_name).upload_from_string(content,
+        #                                                                      content_type='image/jpeg')
         
         #with open('test.jpg', 'wb') as f:
         #    f.write(content)
+
+        image = Image.open(BytesIO(content))
+        #image.show()
         
         line_bot_api = MessagingApi(api_client)
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text=f'got image {blob_name}')]
+                messages=[TextMessage(text=f'got image {image.height} x {image.width}')]
             )
         )
 
