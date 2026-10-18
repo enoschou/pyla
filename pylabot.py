@@ -62,6 +62,13 @@ handler = WebhookHandler(env.get('CHANNEL_SECRET', ''))
 storage_client = storage.Client.from_service_account_json(env.get('GOOGLE_CLOUD_SERVICE', ''))
 
 
+users = {
+    'U111': {'count': 107},
+    'U222': {'count': 55},
+    'U333': {'count': 280}
+}
+
+
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -114,9 +121,7 @@ def create_weather_flex(info: str):
         i['contents'][1]['text'] = t[1].strip()
         weather_flex['body']['contents'][1]['contents'].append(i)
 
-    print(weather_flex)
-    
-    return weather_flex
+    return FlexMessage(alt_text='weather info', contents=FlexContainer.from_dict(weather_flex))
     
 
 @handler.add(MessageEvent, message=LocationMessageContent)
@@ -242,7 +247,26 @@ def handle_message(event):
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     n = event.message.text
-    if n.isdigit():
+    if n == 'count':
+        carousel = {
+            "type": "carousel",
+            "contents": []
+        }
+        with open('bubble.json', encoding='utf-8') as f:
+            bubble = json.load(f)
+        for u in users:
+            b = deepcopy(bubble)
+            b['body']['contents'][0]['contents'][0]['contents'][1]['text'] = u
+            b['footer']['contents'][0]['action']['data'] = u
+            carousel['contents'].append(b)
+
+        messages = [
+            FlexMessage(
+                alt_text='count',
+                contents=FlexContainer.from_dict(carousel)
+            )
+        ]
+    elif n.isdigit():
         n = int(n)
         carousel = {
             "type": "carousel",
@@ -359,7 +383,17 @@ def handle_message(event):
 def handle_message(event):
     print(event)
     #print(event.postback.data)
-
+    event.postback.data
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[
+                    TextMessage(text=f'{users[event.postback.data]['count']}')
+                ]
+            )
+        )
     
     
 if __name__ == "__main__":
