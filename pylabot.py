@@ -1,6 +1,6 @@
 from io import BytesIO
 import json
-from time import strftime
+from time import strftime, time
 
 from flask import Flask, request, abort
 
@@ -16,7 +16,10 @@ from linebot.v3.messaging import (
     MessagingApi,
     MessagingApiBlob,
     ReplyMessageRequest,
-    TextMessage
+    TextMessage,
+    ImageMessage,
+    AudioMessage,
+    LocationMessage
 )
 from linebot.v3.webhooks import (
     MessageEvent,
@@ -28,8 +31,8 @@ from linebot.v3.webhooks import (
 )
 
 from google.cloud import storage
-
 from PIL import Image
+import mutagen
 
 import cwa
 
@@ -111,29 +114,50 @@ def handle_message(event):
 
 @handler.add(MessageEvent, message=AudioMessageContent)
 def handle_message(event):
-    print(event)
     with ApiClient(configuration) as api_client:
         line_bot_api_blob = MessagingApiBlob(api_client)
         content = line_bot_api_blob.get_message_content(event.message.id)
+
+        blob_name = f'{event.source.user_id}_echo.m4a'
+        bucket_name = env.get('GOOGLE_CLOUD_STORAGE_BUCKET', '')
+        blob = storage_client.bucket(bucket_name).blob(blob_name)
+        blob.upload_from_string(content, content_type='audio/m4a')
+        url = blob.generate_signed_url(int(time())+60)
+        duration = int(mutagen.File(BytesIO(content)).info.length*1000)
+        messages = [
+            AudioMessage(original_content_url=url, duration=duration)
+        ]
         
-        with open('test.m4a', 'wb') as f:
-            f.write(content)
+        # with open('test.m4a', 'wb') as f:
+        #     f.write(content)
         
         line_bot_api = MessagingApi(api_client)
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text=f'got audio')]
+                messages=messages
             )
         )
 
 
 @handler.add(MessageEvent, message=ImageMessageContent)
 def handle_message(event):
-    print(event)
     with ApiClient(configuration) as api_client:
         line_bot_api_blob = MessagingApiBlob(api_client)
         content = line_bot_api_blob.get_message_content(event.message.id)
+        
+        # U123423414132131235456465456456_echo.jpg
+        blob_name = f'{event.source.user_id}_echo.jpg'
+        bucket_name = env.get('GOOGLE_CLOUD_STORAGE_BUCKET', '')
+        blob = storage_client.bucket(bucket_name).blob(blob_name)
+        blob.upload_from_string(content, content_type='image/jpeg')
+        url = blob.generate_signed_url(int(time())+60)
+        print(url)
+        messages = [
+            ImageMessage(original_content_url=url, preview_image_url=url),
+            TextMessage(text=url)
+        ]
+        
         #blob_name = f'{event.source.user_id}_{event.message.id}_{strftime('%Y%m%d%H%M%S')}.jpg'
         #bucket_name = env.get('GOOGLE_CLOUD_STORAGE_BUCKET', '')
         #storage_client.bucket(bucket_name).blob(blob_name).upload_from_string(content,
@@ -142,23 +166,47 @@ def handle_message(event):
         #with open('test.jpg', 'wb') as f:
         #    f.write(content)
 
-        image = Image.open(BytesIO(content))
+        #image = Image.open(BytesIO(content))
         #image.show()
         
         line_bot_api = MessagingApi(api_client)
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text=f'got image {image.height} x {image.width}')]
+                messages=messages
             )
         )
 
 
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
-    site = event.message.text
-    key = env.get('CWA_KEY', '')
-    reply_text = cwa.tostr(cwa.get_weather(site, key), '\n')
+    messages = [
+        LocationMessage(title='test', address='台北市', latitude=25.123124, longitude=124.12345)  
+    ]
+
+    # with open('test.m4a', 'rb') as f:
+    #     audio = f.read()
+    # blob_name = 'test.m4a'
+    # bucket_name = env.get('GOOGLE_CLOUD_STORAGE_BUCKET', '')
+    # blob = storage_client.bucket(bucket_name).blob(blob_name)
+    # blob.upload_from_string(audio, content_type='audio/m4a')
+    # url = blob.generate_signed_url(int(time())+60)
+    # duration = int(mutagen.File(BytesIO(audio)).info.length*1000)
+    # messages = [
+    #     AudioMessage(original_content_url=url, duration=duration)
+    # ]
+    
+    # url1 = 'https://imgcdn.cna.com.tw/www/webphotos/cnaweekly/culture/2022/1080x764_974223471497.jpg'
+    # url2 = 'https://ialive.bwnet.com.tw/AC_Gallery/2024/01/39330fc0-aa86-e227-05cf-d9d4fef7799a.jpg'
+    # messages = [
+    #     ImageMessage(original_content_url=url2, preview_image_url=url2),
+    #     TextMessage(text='hello'),
+    #     ImageMessage(original_content_url=url1, preview_image_url=url1)
+    # ]
+    
+    # site = event.message.text
+    # key = env.get('CWA_KEY', '')
+    # reply_text = cwa.tostr(cwa.get_weather(site, key), '\n')
 
     # user_ask = event.message.text
     # ask_map = {'hello': '我很好', 'hi': '您哪位？'}
@@ -176,7 +224,7 @@ def handle_message(event):
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text=reply_text)]
+                messages=messages
             )
         )
 
