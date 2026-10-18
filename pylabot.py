@@ -1,6 +1,7 @@
 from io import BytesIO
 import json
 from time import strftime, time
+from copy import deepcopy
 
 from flask import Flask, request, abort
 
@@ -21,7 +22,14 @@ from linebot.v3.messaging import (
     AudioMessage,
     LocationMessage,
     FlexMessage,
-    FlexContainer
+    FlexContainer,
+    Sender,
+    QuickReply,
+    QuickReplyItem,
+    MessageAction,
+    CameraAction,
+    URIAction,
+    PostbackAction
 )
 from linebot.v3.webhooks import (
     MessageEvent,
@@ -29,7 +37,8 @@ from linebot.v3.webhooks import (
     ImageMessageContent,
     AudioMessageContent,
     FileMessageContent,
-    LocationMessageContent
+    LocationMessageContent,
+    PostbackEvent
 )
 
 from google.cloud import storage
@@ -72,6 +81,44 @@ def callback():
     return 'OK'
 
 
+def create_weather_flex(info: str):
+    tables = []
+    for item in info_str.split(';'):
+        tables.append(item.strip().split(':'))
+
+    weather_flex = {
+        'type': 'bubble',
+        'body': {
+            'type': 'box',
+            'layout': 'vertical',
+            'contents': [
+                {'type': 'text', 'text': '信義', 'weight': 'bold', 'size': 'xl'},
+                {'type': 'box', 'layout': 'vertical', 'margin': 'lg', 'spacing': 'sm', 'contents': []}
+            ]
+        }
+    }
+    
+    item = {
+        "type": "box",
+        "layout": "baseline",
+        "spacing": "sm",
+        "contents": [
+            {"type": "text", "text": "編號", "color": "#0000FF", "size": "sm", "flex": 1},
+            {"type": "text", "text": "A123456", "wrap": True, "color": "#666666", "size": "sm", "flex": 5}
+        ]
+    }
+
+    for t in tables:
+        i = deepcopy(item)
+        i['contents'][0]['text'] = t[0].strip()
+        i['contents'][1]['text'] = t[1].strip()
+        weather_flex['body']['contents'][1]['contents'].append(i)
+
+    print(weather_flex)
+    
+    return weather_flex
+    
+
 @handler.add(MessageEvent, message=LocationMessageContent)
 def handle_message(event):
     #reply_text = f'{event.message.latitude}\n{event.message.longitude}\n{event.message.address}'
@@ -94,6 +141,7 @@ def handle_message(event):
             )
         )
     messages.append(TextMessage(text=reply_text))
+    messages.append(create_weather_flex(cwa.tostr(info, ';')))
     
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
@@ -207,9 +255,30 @@ def handle_message(event):
 
         messages = [
             FlexMessage(
+                sender=Sender(name='Enos', icon_url='https://developers-resource.landpress.line.me/fx/img/review_gold_star_28.png'),
                 alt_text=f'{n} bubbles',
                 contents=FlexContainer.from_dict(carousel)
             )
+        ]
+    elif n == 'test':
+        with open('actions.json', encoding='utf-8') as f:
+            bubble = json.load(f)
+        messages = [
+            FlexMessage(
+                alt_text=f'actions',
+                contents=FlexContainer.from_dict(bubble)
+            )
+        ]
+    elif n == 'action':
+        items = [
+            QuickReplyItem(action=MessageAction(label='hello', text='hello'), image_url='https://developers-resource.landpress.line.me/fx/img/review_gold_star_28.png'),
+            QuickReplyItem(action=CameraAction(label='carema')),
+            QuickReplyItem(action=URIAction(label='carema2', uri='https://line.me/R/nv/camera/')),
+            QuickReplyItem(action=PostbackAction(label="postback", data="action postback"))
+        ]
+        quick_reply = QuickReply(items=items)
+        messages = [
+            TextMessage(text='請測試', quick_reply=quick_reply)
         ]
     else:
         return
@@ -286,5 +355,12 @@ def handle_message(event):
             )
         )
 
+@handler.add(PostbackEvent)
+def handle_message(event):
+    print(event)
+    #print(event.postback.data)
+
+    
+    
 if __name__ == "__main__":
     app.run()
