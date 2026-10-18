@@ -7,6 +7,9 @@ import requests
 OBS_API = 'https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0001-001'
 
 
+_sitemap = None
+
+
 def get_weather(name: str, key: str) -> dict:
     '''get weather information from CWA, include temperature, ...
     name   - CWA station name
@@ -69,6 +72,63 @@ def tostr(weather_info: dict[str], sep: str = ', ') -> str:
         show.append(f'雨量: {weather_info['R']:.1f}mm')
 
     return sep.join(show) or '無觀測'
+
+def _init_sitemap(key: str) -> list[dict[str]]:
+    params = {'Authorization': key}
+
+    try:
+        r = requests.get(OBS_API, params=params)
+        if r.status_code != 200:
+            print(f'bad status: {r.text}')
+            return []
+
+        sitemap = []
+        for s in r.json()['records']['Station']:
+            c = s['GeoInfo']['Coordinates'][1]
+            coor = (float(c.get('StationLatitude')), float(c.get('StationLongitude')))
+            d = {
+                'id': s['StationId'],
+                'name': s['StationName'],
+                'coor': coor
+            }
+            sitemap.append(d)
+    
+        return sitemap
+    except Exception as e:
+        print(e)
+    return []
+
+def nearest(coor: tuple[float, float], key: str | None = None) -> str:
+    '''get the nearest station name of CWA
+    coor   - the coordinates of specific location, in (lantitude, longitude)
+    return - station name
+           - empty str if error
+    '''
+    # validate coor
+    if not coor or not isinstance(coor, tuple) or len(coor) != 2:
+        return ''
+    
+    global _sitemap
+
+    # init sitemap
+    if not _sitemap:
+        _sitemap = _init_sitemap(key)
+        if not _sitemap:
+            print('no sitemap is available!')
+            return ''
+
+    # measure nearest
+    pt = coor
+    def dist(site: dict):
+        try:
+            pt2 = site['coor']
+            return (pt[0] - pt2[0]) ** 2 + (pt[1] - pt2[1]) ** 2
+        except Exception as e:
+            print(e)
+            return 1000000
+
+    return min(_sitemap, key=dist).get('name', '')
+
 
 
 if __name__ == '__main__':
