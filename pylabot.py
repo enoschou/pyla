@@ -19,7 +19,9 @@ from linebot.v3.messaging import (
     TextMessage,
     ImageMessage,
     AudioMessage,
-    LocationMessage
+    LocationMessage,
+    FlexMessage,
+    FlexContainer
 )
 from linebot.v3.webhooks import (
     MessageEvent,
@@ -191,9 +193,54 @@ def handle_message(event):
 
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
-    messages = [
-        LocationMessage(title='test', address='台北市', latitude=25.123124, longitude=124.12345)  
-    ]
+    n = event.message.text
+    if n.isdigit():
+        n = int(n)
+        carousel = {
+            "type": "carousel",
+            "contents": []
+        }
+        with open('bubble.json', encoding='utf-8') as f:
+            bubble = json.load(f)
+        for i in range(n):
+            carousel['contents'].append(bubble)
+
+        messages = [
+            FlexMessage(
+                alt_text=f'{n} bubbles',
+                contents=FlexContainer.from_dict(carousel)
+            )
+        ]
+    else:
+        return
+    
+    
+    # with open('carousel.json', encoding='utf-8') as f:
+    #     json_str = f.read()
+            
+    # messages = [
+    #     FlexMessage(
+    #         alt_text='alt message',
+    #         contents=FlexContainer.from_json(json_str)
+    #     )
+    # ]
+    
+    # if event.message.text == 'me':
+    #     with open('bubble.json', encoding='utf-8') as f:
+    #         json_str = f.read()
+            
+    #     messages = [
+    #         FlexMessage(
+    #             alt_text='alt message',
+    #             contents=FlexContainer.from_json(json_str)
+    #         )
+    #     ]
+    # else:
+    #     return
+    
+    # messages = [
+    #     LocationMessage(title='test', address='台北市', latitude=25.123124, longitude=124.12345)  
+    # ]
 
     # with open('test.m4a', 'rb') as f:
     #     audio = f.read()
