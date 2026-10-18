@@ -72,7 +72,6 @@ def callback():
 
 @handler.add(MessageEvent, message=LocationMessageContent)
 def handle_message(event):
-    #print(event)
     #reply_text = f'{event.message.latitude}\n{event.message.longitude}\n{event.message.address}'
     
     # coordinates to weather info
@@ -81,13 +80,25 @@ def handle_message(event):
     name = cwa.nearest(coor, key)
     info = cwa.get_weather(name, key)
     reply_text = cwa.tostr(info, '\n')
+    site_coor = info.get('C')
+    messages = []
+    if site_coor:
+        messages.append(
+            LocationMessage(
+                title=info.get('S', 'N/A'),
+                address=info.get('S', 'N/A'),
+                latitude=site_coor[0],
+                longitude=site_coor[1]
+            )
+        )
+    messages.append(TextMessage(text=reply_text))
     
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text=reply_text)]
+                messages=messages
             )
         )
 

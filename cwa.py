@@ -39,6 +39,9 @@ def get_weather(name: str, key: str) -> dict:
                 info = {}
                 info['S'] = name
                 info['I'] = s['StationId']
+                geo = s['GeoInfo']['Coordinates'][1]
+                coor = (float(geo.get('StationLatitude')), float(geo.get('StationLongitude')))
+                info['C'] = coor
                 info['O'] = s['ObsTime']['DateTime'].replace(':00+08:00', '').replace('T', ' ')
                 info['T'] = float(s['WeatherElement']['AirTemperature'])
                 info['H'] = float(s['WeatherElement']['RelativeHumidity']) / 100
@@ -62,6 +65,8 @@ def tostr(weather_info: dict[str], sep: str = ', ') -> str:
         show.append(f'測站: {weather_info['S']}')
     if 'I' in weather_info:
         show.append(f'編號: {weather_info['I']}')
+    if 'C' in weather_info:
+        show.append(f'座標: {weather_info['C']}')
     if 'O' in weather_info:
         show.append(f'時間: {weather_info['O']}')
     if 'T' in weather_info:
