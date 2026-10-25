@@ -103,15 +103,22 @@ def _init_sitemap(key: str) -> list[dict[str]]:
         print(e)
     return []
 
-def nearest(coor: tuple[float, float], key: str | None = None) -> str:
+def nearest(coor: tuple[float, float], key: str | None = None, size: int = 1) -> str | list[str]:
     '''get the nearest station name of CWA
     coor   - the coordinates of specific location, in (lantitude, longitude)
-    return - station name
+    key    - CWA key
+    size   - count of nearest station names
+    return - station name, ex: '信義'
+           - multiple station names, ex: ['信義', '大安', '北投', ...]
            - empty str if error
     '''
-    # validate coor
+    # validation
     if not coor or not isinstance(coor, tuple) or len(coor) != 2:
         return ''
+    
+    if not size or not isinstance(size, int) or size < 1:
+        return ''
+    
     
     global _sitemap
 
@@ -131,9 +138,10 @@ def nearest(coor: tuple[float, float], key: str | None = None) -> str:
         except Exception as e:
             print(e)
             return 1000000
-
-    return min(_sitemap, key=dist).get('name', '')
-
+    
+    if size == 1:
+        return min(_sitemap, key=dist).get('name', '')
+    return [s.get('name', '') for s in sorted(_sitemap, key=dist)[:size]]
 
 
 if __name__ == '__main__':
