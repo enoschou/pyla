@@ -152,7 +152,7 @@ def handle_message(event):
             )
         )    
     #messages.append(TextMessage(text=reply_text))
-    items = [QuickReplyItem(action=MessageAction(label=n, text=n)) for n in nears]
+    items = [QuickReplyItem(action=MessageAction(label="📍"+n, text=n)) for n in nears]
     weather_flex = create_weather_flex(cwa.tostr(info, ';'))
     weather_flex.quick_reply = QuickReply(items=items)
     messages.append(weather_flex)
@@ -391,9 +391,24 @@ def handle_message(event):
 
 @handler.add(PostbackEvent)
 def handle_message(event):
-    print(event)
-    #print(event.postback.data)
-    event.postback.data
+    if event.postback.data == 'next':
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            line_bot_api.link_rich_menu_id_to_user(
+                user_id=event.source.user_id,
+                rich_menu_id='richmenu-39d09cac7fe91913a10fdaf44b0d6862'
+            )
+        return
+    if  event.postback.data == 'back':
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            # line_bot_api.link_rich_menu_id_to_user(
+            #     user_id=event.source.user_id,
+            #     rich_menu_id='richmenu-5f61eadfceb1aab4ae0b4efd2c14c65e'
+            # )
+            line_bot_api.unlink_rich_menu_id_from_user(user_id=event.source.user_id)
+        return
+    
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         line_bot_api.reply_message_with_http_info(
