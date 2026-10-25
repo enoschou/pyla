@@ -90,8 +90,13 @@ def callback():
 
 def create_weather_flex(info: str):
     tables = []
-    for item in info_str.split(';'):
-        tables.append(item.strip().split(':'))
+    name = 'NA'
+    for item in info.split(';'):
+        row = item.strip().split(':')
+        if row[0] == '測站':
+            name = row[1]
+        else:
+            tables.append(row)
 
     weather_flex = {
         'type': 'bubble',
@@ -99,7 +104,7 @@ def create_weather_flex(info: str):
             'type': 'box',
             'layout': 'vertical',
             'contents': [
-                {'type': 'text', 'text': '信義', 'weight': 'bold', 'size': 'xl'},
+                {'type': 'text', 'text': name, 'weight': 'bold', 'size': 'xl'},
                 {'type': 'box', 'layout': 'vertical', 'margin': 'lg', 'spacing': 'sm', 'contents': []}
             ]
         }
