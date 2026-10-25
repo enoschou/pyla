@@ -38,10 +38,11 @@ from linebot.v3.webhooks import (
     AudioMessageContent,
     FileMessageContent,
     LocationMessageContent,
-    PostbackEvent
+    PostbackEvent,
+    FollowEvent
 )
 
-from google.cloud import storage
+from google.cloud import storage, firestore
 from PIL import Image
 import mutagen
 
@@ -60,6 +61,7 @@ except Exception as e:
 configuration = Configuration(access_token=env.get('CHANNEL_ACCESS_TOKEN', ''))
 handler = WebhookHandler(env.get('CHANNEL_SECRET', ''))
 storage_client = storage.Client.from_service_account_json(env.get('GOOGLE_CLOUD_SERVICE', ''))
+firestore_client = firestore.Client.from_service_account_json(env.get('GOOGLE_CLOUD_SERVICE', ''))
 
 
 users = {
@@ -256,7 +258,13 @@ def handle_message(event):
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     n = event.message.text
-    if n == 'count':
+    if n == 'profile':
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            profile = dict(line_bot_api.get_profile(user_id=event.source.user_id))
+            print(profile)
+            return
+    elif n == 'count':
         carousel = {
             "type": "carousel",
             "contents": []
@@ -419,6 +427,39 @@ def handle_message(event):
                 ]
             )
         )
+
+@handler.add(FollowEvent)
+def handle_message(event):
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+
+        profile = dict(line_bot_api.get_profile(user_id=event.source.user_id))
+        display_name = profile.get('display_name')
+        picture_url = profile.get('picture_url') or 'https://developers-resource.landpress.line.me/fx/img/review_gold_star_28.png'
+        greeting = f'Welcome {display_name}!' if display_name else 'Welcome'
+        
+        line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[
+                    ImageMessage(original_content_url=picture_url, preview_image_url=picture_url),
+                    TextMessage(text=greeting)
+                ]
+            )
+        )
+
+        # add user
+        data = {
+            'user_id': event.source.user_id,
+            'follow': strftime('%Y%m%d%H%M%S'),
+            'count': 0
+        }
+        
+        firestore_client.collection('pyla').add(
+            document_id=event.source.user_id,
+            document_data=data
+        )
+        
     
     
 if __name__ == "__main__":
