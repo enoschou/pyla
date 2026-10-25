@@ -89,7 +89,6 @@ def callback():
 
     return 'OK'
 
-
 def create_weather_flex(info: str):
     tables = []
     name = 'NA'
@@ -129,8 +128,38 @@ def create_weather_flex(info: str):
         weather_flex['body']['contents'][1]['contents'].append(i)
 
     return FlexMessage(alt_text='weather info', contents=FlexContainer.from_dict(weather_flex))
-    
 
+
+def create_users_flex():
+    carousel = {
+        "type": "carousel",
+        "contents": []
+    }
+    with open('bubble.json', encoding='utf-8') as f:
+        bubble = json.load(f)
+
+    users = {}
+    for u in firestore_client.collection('pyla').stream():
+        profile = u.to_dict()
+        users[profile['user_id']] = {'count': profile['count']}
+
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        for u in users:
+            profile = dict(line_bot_api.get_profile(user_id=u))
+            b = deepcopy(bubble)
+            b['hero']['url'] = profile.get('picture_url') or "https://imgcdn.cna.com.tw/www/webphotos/cnaweekly/culture/2022/1080x764_974223471497.jpg"
+            b['body']['contents'][0]['contents'][0]['contents'][1]['text'] = u
+            b['body']['contents'][0]['contents'][1]['contents'][1]['text'] = profile.get('display_name') or 'N/A'
+            b['body']['contents'][0]['contents'][2]['contents'][1]['text'] = profile.get('status') or 'N/A'
+            b['footer']['contents'][0]['action']['data'] = f'count={u}'
+            carousel['contents'].append(b)
+
+    return FlexMessage(
+        alt_text='count',
+        contents=FlexContainer.from_dict(carousel)
+    )
+    
 @handler.add(MessageEvent, message=LocationMessageContent)
 def handle_message(event):
     #reply_text = f'{event.message.latitude}\n{event.message.longitude}\n{event.message.address}'
@@ -191,8 +220,6 @@ def handle_message(event):
             )
         )
 
-
-
 @handler.add(MessageEvent, message=AudioMessageContent)
 def handle_message(event):
     with ApiClient(configuration) as api_client:
@@ -219,7 +246,6 @@ def handle_message(event):
                 messages=messages
             )
         )
-
 
 @handler.add(MessageEvent, message=ImageMessageContent)
 def handle_message(event):
@@ -258,7 +284,6 @@ def handle_message(event):
             )
         )
 
-
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     n = event.message.text
@@ -268,6 +293,9 @@ def handle_message(event):
             profile = dict(line_bot_api.get_profile(user_id=event.source.user_id))
             print(profile)
             return
+    if n == 'users':
+        flex = create_users_flex()
+        messages = [flex]
     elif n == 'count':
         carousel = {
             "type": "carousel",
@@ -420,15 +448,20 @@ def handle_message(event):
             # )
             line_bot_api.unlink_rich_menu_id_from_user(user_id=event.source.user_id)
         return
+
+    if event.postback.data.startswith('count='):
+        _, user_id = event.postback.data.split('=')
+        count = firestore_client.collection('pyla').document(user_id).get().to_dict().get('count', 0)
+        messages = [TextMessage(text=f'{count} 次')]
+    else:
+        return
     
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[
-                    TextMessage(text=f'{users[event.postback.data]['count']}')
-                ]
+                messages=messages
             )
         )
 
