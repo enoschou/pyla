@@ -136,7 +136,8 @@ def handle_message(event):
     # coordinates to weather info
     coor = (event.message.latitude, event.message.longitude)
     key = env.get('CWA_KEY', '')
-    name = cwa.nearest(coor, key)
+    #name = cwa.nearest(coor, key)
+    name, *nears = cwa.nearest(coor, key, 5)
     info = cwa.get_weather(name, key)
     reply_text = cwa.tostr(info, '\n')
     site_coor = info.get('C')
@@ -149,9 +150,12 @@ def handle_message(event):
                 latitude=site_coor[0],
                 longitude=site_coor[1]
             )
-        )
-    messages.append(TextMessage(text=reply_text))
-    messages.append(create_weather_flex(cwa.tostr(info, ';')))
+        )    
+    #messages.append(TextMessage(text=reply_text))
+    items = [QuickReplyItem(action=MessageAction(label=n, text=n)) for n in nears]
+    weather_flex = create_weather_flex(cwa.tostr(info, ';'))
+    weather_flex.quick_reply = QuickReply(items=items)
+    messages.append(weather_flex)
     
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
@@ -310,8 +314,9 @@ def handle_message(event):
             TextMessage(text='請測試', quick_reply=quick_reply)
         ]
     else:
-        return
-    
+        key = env.get('CWA_KEY', '')
+        text = cwa.tostr(cwa.get_weather(n, key), '\n')
+        messages = [TextMessage(text=text)]
     
     # with open('carousel.json', encoding='utf-8') as f:
     #     json_str = f.read()
