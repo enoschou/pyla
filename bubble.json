@@ -1,0 +1,114 @@
+{
+  "type": "bubble",
+  "header": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "粉絲一覽",
+        "size": "4xl",
+        "align": "center",
+        "color": "#FF0000"
+      }
+    ]
+  },
+  "hero": {
+    "type": "image",
+    "url": "https://imgcdn.cna.com.tw/www/webphotos/cnaweekly/culture/2022/1080x764_974223471497.jpg",
+    "size": "full",
+    "aspectRatio": "20:13",
+    "aspectMode": "cover"
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "box",
+        "layout": "vertical",
+        "margin": "lg",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "baseline",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": "UserID",
+                "color": "#0000FF",
+                "size": "sm",
+                "flex": 2
+              },
+              {
+                "type": "text",
+                "text": "U12345678901234567890123456789012",
+                "wrap": false,
+                "size": "sm",
+                "flex": 5
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": "Display",
+                "color": "#0000FF",
+                "size": "sm",
+                "flex": 2
+              },
+              {
+                "type": "text",
+                "text": "Enos",
+                "wrap": false,
+                "size": "sm",
+                "flex": 5
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": "Status",
+                "color": "#0000FF",
+                "flex": 2,
+                "size": "sm"
+              },
+              {
+                "type": "text",
+                "text": "N/A",
+                "wrap": false,
+                "size": "sm",
+                "flex": 5
+              }
+            ],
+            "spacing": "sm"
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "button",
+        "action": {
+          "type": "postback",
+          "label": "次數",
+          "data": "count=U12342131231231"
+        }
+      }
+    ]
+  }
+}
