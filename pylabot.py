@@ -168,6 +168,10 @@ def handle_message(event):
             )
         )
 
+    # update user count
+    firestore_client.collection('pyla').document(event.source.user_id).update(
+        {'count': firestore.Increment(1)}
+    )
 
 @handler.add(MessageEvent, message=FileMessageContent)
 def handle_message(event):
@@ -448,17 +452,22 @@ def handle_message(event):
             )
         )
 
-        # add user
-        data = {
-            'user_id': event.source.user_id,
-            'follow': strftime('%Y%m%d%H%M%S'),
-            'count': 0
-        }
-        
-        firestore_client.collection('pyla').add(
-            document_id=event.source.user_id,
-            document_data=data
-        )
+        if firestore_client.collection('pyla').document(event.source.user_id).get().exists:
+            firestore_client.collection('pyla').document(event.source.user_id).update(
+                {'follow': strftime('%Y%m%d%H%M%S')}
+            )
+        else:
+            # add user
+            data = {
+                'user_id': event.source.user_id,
+                'follow': strftime('%Y%m%d%H%M%S'),
+                'count': 0
+            }
+            
+            firestore_client.collection('pyla').add(
+                document_id=event.source.user_id,
+                document_data=data
+            )
         
     
     
