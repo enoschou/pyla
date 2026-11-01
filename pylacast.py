@@ -39,3 +39,4 @@ with ApiClient(configuration) as api_client:
         name = dict(line_bot_api.get_profile(user_id=user_id)).get('display_name', '尊貴的用戶')
         messages = [TextMessage(text=f'Hello {name}, you are VIP')]
         line_bot_api.push_message(PushMessageRequest(messages=messages, to=user_id))
+        print(f'sent to {name} done')
