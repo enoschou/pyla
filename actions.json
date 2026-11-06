@@ -1,0 +1,51 @@
+{
+  "type": "bubble",
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "button",
+        "action": {
+          "type": "postback",
+          "label": "postback test",
+          "data": "this is postback",
+          "displayText": "you pushed postback"
+        }
+      },
+      {
+        "type": "button",
+        "action": {
+          "type": "uri",
+          "label": "carema",
+          "uri": "https://line.me/R/nv/camera/"
+        }
+      },
+      {
+        "type": "button",
+        "action": {
+          "type": "uri",
+          "label": "web",
+          "uri": "http://linecorp.com/"
+        }
+      },
+      {
+        "type": "button",
+        "action": {
+          "type": "message",
+          "label": "hello",
+          "text": "hello"
+        }
+      },
+      {
+        "type": "button",
+        "action": {
+          "type": "datetimepicker",
+          "label": "date",
+          "data": "date data",
+          "mode": "date"
+        }
+      }
+    ]
+  }
+}
