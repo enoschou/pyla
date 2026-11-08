@@ -1,0 +1,9 @@
+FROM python:3.12.16-slim-trixie
+
+WORKDIR /pylacast
+
+COPY pylacast.py env.json service.json ./
+
+RUN pip install line-bot-sdk google-cloud-firestore --no-cache-dir --break-system-packages
+
+CMD python3 pylacast.py
