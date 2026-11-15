@@ -47,6 +47,7 @@ from PIL import Image
 import mutagen
 
 import cwa
+import car
 
 
 app = Flask(__name__)
@@ -253,17 +254,27 @@ def handle_message(event):
         line_bot_api_blob = MessagingApiBlob(api_client)
         content = line_bot_api_blob.get_message_content(event.message.id)
         
-        # U123423414132131235456465456456_echo.jpg
-        blob_name = f'{event.source.user_id}_echo.jpg'
-        bucket_name = env.get('GOOGLE_CLOUD_STORAGE_BUCKET', '')
-        blob = storage_client.bucket(bucket_name).blob(blob_name)
-        blob.upload_from_string(content, content_type='image/jpeg')
-        url = blob.generate_signed_url(int(time())+60)
-        print(url)
+        # car
+        r = car.recognize_plate(
+            content,
+            model='gemini-3.8-flash',
+            service='service.json'
+        )
         messages = [
-            ImageMessage(original_content_url=url, preview_image_url=url),
-            TextMessage(text=url)
+            TextMessage(text=r or '辨識異常')
         ]
+        
+        # U123423414132131235456465456456_echo.jpg
+        #blob_name = f'{event.source.user_id}_echo.jpg'
+        #bucket_name = env.get('GOOGLE_CLOUD_STORAGE_BUCKET', '')
+        #blob = storage_client.bucket(bucket_name).blob(blob_name)
+        #blob.upload_from_string(content, content_type='image/jpeg')
+        #url = blob.generate_signed_url(int(time())+60)
+        #print(url)
+        #messages = [
+        #    ImageMessage(original_content_url=url, preview_image_url=url),
+        #    TextMessage(text=url)
+        #]
         
         #blob_name = f'{event.source.user_id}_{event.message.id}_{strftime('%Y%m%d%H%M%S')}.jpg'
         #bucket_name = env.get('GOOGLE_CLOUD_STORAGE_BUCKET', '')
