@@ -260,8 +260,25 @@ def handle_message(event):
             model='gemini-3.8-flash',
             service='service.json'
         )
+        
+        blob_name = f'{event.source.user_id}_echo.jpg'
+        bucket_name = env.get('GOOGLE_CLOUD_STORAGE_BUCKET', '')
+        blob = storage_client.bucket(bucket_name).blob(blob_name)
+        blob.upload_from_string(content, content_type='image/jpeg')
+        url = blob.generate_signed_url(int(time())+60)
+        
+        with open('car.json', encoding='utf-8') as f:
+            bubble = json.load(f)
+        bubble['hero']['url'] = url  # picture
+        bubble['body']['contents'][1]["contents"][0]['contents'][1]['text'] = r['plate'] or '無車牌'
+        bubble['body']['contents'][1]["contents"][1]['contents'][1]['text'] = r['brand']
         messages = [
-            TextMessage(text=r or '辨識異常')
+            FlexMessage(
+                alt_text='車牌辨識',
+                contents=FlexContainer.from_dict(bubble),
+                sender=Sender(name='車牌辨識機器人')
+            )
+            #TextMessage(text=r or '辨識異常')
         ]
         
         # U123423414132131235456465456456_echo.jpg
