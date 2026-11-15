@@ -1,0 +1,74 @@
+{
+  "type": "bubble",
+  "hero": {
+    "type": "image",
+    "url": "https://developers-resource.landpress.line.me/fx/img/01_1_cafe.png",
+    "size": "full",
+    "aspectRatio": "20:13",
+    "aspectMode": "cover"
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "車牌辨識",
+        "weight": "bold",
+        "size": "xl"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "margin": "lg",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "baseline",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": "車牌號碼",
+                "color": "#0000FF",
+                "size": "sm",
+                "flex": 1
+              },
+              {
+                "type": "text",
+                "text": "AAA-123",
+                "wrap": false,
+                "color": "#666666",
+                "size": "sm",
+                "flex": 2
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "text",
+                "text": "車款",
+                "color": "#0000FF",
+                "size": "sm",
+                "flex": 1
+              },
+              {
+                "type": "text",
+                "text": "Toyota",
+                "wrap": true,
+                "color": "#666666",
+                "size": "sm",
+                "flex": 2
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
