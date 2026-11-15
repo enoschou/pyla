@@ -4,6 +4,6 @@ WORKDIR /pylacast
 
 COPY pylacast.py env.json service.json ./
 
-RUN pip install line-bot-sdk google-cloud-firestore --no-cache-dir --break-system-packages
+RUN pip install line-bot-sdk google-cloud-firestore --no-cache-dir
 
 CMD python3 pylacast.py
